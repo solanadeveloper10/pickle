@@ -4,11 +4,11 @@ export const theme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#c7fe03",
-      light: "#86de08",
+      main: "#fac8f2",
+      light: "#ffb6d5",
     },
     secondary: {
-      main: "#86de08",
+      main: "#ffb6c1",
     },
     background: {
       default: "#fff",
@@ -21,7 +21,7 @@ export const theme = createTheme({
     divider: "#e0ddd4",
   },
   typography: {
-    fontFamily: "'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif",
+    fontFamily: "'Schoolbell', 'Roboto', 'Helvetica', 'Arial', sans-serif",
     h1: { fontSize: "3rem", fontWeight: 700 },
     h2: { fontSize: "2.5rem", fontWeight: 600 },
     h3: { fontSize: "2rem", fontWeight: 500 },

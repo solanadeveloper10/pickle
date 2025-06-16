@@ -1,94 +1,177 @@
-import { useEffect, useRef, useState } from "react";
-import { Box } from "@mui/material";
+import { useEffect, useRef } from "react";
+import { Box, useMediaQuery } from "@mui/material";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-const placeholder = "https://via.placeholder.com/50";
+gsap.registerPlugin(ScrollTrigger);
 
 const Links = () => {
-  const [scrollY, setScrollY] = useState(0);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("md"));
+
+  const flyZoneRef = useRef(null);
+  const fly1Ref = useRef(null);
+  const fly2Ref = useRef(null);
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    const flyZone = flyZoneRef.current;
+    const fly1 = fly1Ref.current;
+    const fly2 = fly2Ref.current;
 
-  useEffect(() => {
-    const updateSize = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        setContainerSize({ width: rect.width, height: rect.height });
-      }
-    };
-    updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
-  }, []);
+    // Kill previous triggers to avoid duplicates on resize
+    ScrollTrigger.getAll().forEach((t) => t.kill());
 
-  // Responsive movement range (smaller on mobile)
-  const isMobile = containerSize.width < 600;
-  const moveRange = isMobile ? 40 : 80;
+    if (isMobile) {
+      // Mobile: fly straight up
+      gsap.to(fly1, {
+        x: "30vw",
+        y: "-35vh",
+        ease: "none",
+        scrollTrigger: {
+          trigger: flyZone,
+          start: "top center",
+          end: "center center",
+          scrub: true,
+        },
+      });
 
-  // Center positions as percentages
-  const basePositions = [
-    { x: 0.25, y: 0.35 }, // top-left
-    { x: 0.35, y: 0.65 }, // bottom-left
-    { x: 0.65, y: 0.35 }, // top-right
-    { x: 0.75, y: 0.65 }, // bottom-right
-  ];
+      gsap.to(fly2, {
+        x: "-30vw",
+        y: "-35vh",
+        ease: "none",
+        scrollTrigger: {
+          trigger: flyZone,
+          start: "top center",
+          end: "center center",
+          scrub: true,
+        },
+      });
+    } else {
+      // Desktop: fly to corners
+      gsap.to(fly1, {
+        x: "51vw",
+        y: "-40vh",
+        ease: "none",
+        scrollTrigger: {
+          trigger: flyZone,
+          start: "top center",
+          end: "center center",
+          scrub: true,
+        },
+      });
 
-  // Movement directions for each link
-  const directions = [
-    { dx: -1, dy: -1 }, // up-left
-    { dx: -1, dy: 1 }, // down-left
-    { dx: 1, dy: -1 }, // up-right
-    { dx: 1, dy: 1 }, // down-right
-  ];
+      gsap.to(fly2, {
+        x: "-51vw",
+        y: "-40vh",
+        ease: "none",
+        scrollTrigger: {
+          trigger: flyZone,
+          start: "top center",
+          end: "center center",
+          scrub: true,
+        },
+      });
+    }
 
-  // Calculate positions
-  const positions = basePositions.map((base, idx) => {
-    const { width, height } = containerSize;
-    const dir = directions[idx];
-    // Move max moveRange px in each direction, based on scroll
-    const move = Math.min(Math.abs(scrollY), moveRange);
-    const left = width * base.x + dir.dx * move;
-    const top = height * base.y + dir.dy * move;
-    // Clamp to stay on screen
-    const imgSize = isMobile ? 36 : 50;
-    return {
-      left: Math.max(0, Math.min(left, width - imgSize)),
-      top: Math.max(0, Math.min(top, height - imgSize)),
-    };
-  });
+    return () => ScrollTrigger.getAll().forEach((t) => t.kill());
+  }, [isMobile]);
 
   return (
-    <Box
-      ref={containerRef}
-      height="100vh"
-      bgcolor="red"
-      position="relative"
-      overflow="hidden"
-      width="100vw"
-    >
-      {positions.map((pos, idx) => (
-        <a
-          key={idx}
-          href="#"
-          style={{
+    <Box sx={{ overflow: "hidden" }}>
+      <Box
+        ref={flyZoneRef}
+        sx={{
+          height: "100vh",
+          position: "relative",
+          img: {
+            transition: "0.5s",
+          },
+        }}
+      >
+        <Box
+          ref={fly1Ref}
+          sx={{
             position: "absolute",
-            left: pos.left,
-            top: pos.top,
-            transition: "left 3s, top 5s",
+            left: { xs: 100, md: 0 },
+            bottom: 0,
+            transition: { xs: "1s", md: "1s" },
           }}
         >
-          <img
-            src={placeholder}
-            alt={`Link ${idx + 1}`}
-            style={{ width: isMobile ? 36 : 50, height: isMobile ? 36 : 50 }}
-          />
-        </a>
-      ))}
+          <Box
+            sx={{
+              ":hover": {
+                img: {
+                  transform: "scale(1.2)",
+                },
+              },
+            }}
+          >
+            <a href='https://t.me/mwah_coin' target='_blank'>
+              <img src='/telegram.png' width={80} height={80} />
+            </a>
+          </Box>
+          <Box
+            sx={{
+              position: "relative",
+              top: { xs: 80, md: 80 },
+              left: { xs: -130, md: -140 },
+              ":hover": {
+                img: {
+                  transform: "scale(1.2)",
+                },
+              },
+            }}
+          >
+            <a href='https://x.com/mwah_coin' target='_blank'>
+              <img src='/twitter.png' width={80} height={80} />
+            </a>
+          </Box>
+        </Box>
+        <Box
+          ref={fly2Ref}
+          sx={{
+            position: "absolute",
+            right: { xs: 100, md: 0 },
+            bottom: 0,
+            transition: { xs: "1s", md: "1s" },
+          }}
+        >
+          <Box
+            sx={{
+              ":hover": {
+                img: {
+                  transform: "scale(1.2)",
+                },
+              },
+            }}
+          >
+            <a
+              href='https://dexscreener.com/solana/9wpzgealy8lsqkvowhy8sppbkluaxyw7knt3ywms8v4k'
+              target='_blank'
+            >
+              <img src='/dexscreener.png' width={80} height={80} />
+            </a>
+          </Box>
+          <Box
+            sx={{
+              position: "relative",
+              top: { xs: 80, md: 80 },
+              left: { xs: 130, md: 140 },
+              ":hover": {
+                img: {
+                  transform: "scale(1.2)",
+                },
+              },
+            }}
+          >
+            <a
+              href='https://www.dextools.io/app/en/solana/pair-explorer/9wPZgEALy8LSqkVoWHy8sPPbkLUaXyw7knT3YWMs8V4K?t=1750777482992'
+              target='_blank'
+            >
+              <img src='/dextools.png' width={80} height={80} />
+            </a>
+          </Box>
+        </Box>
+      </Box>
     </Box>
   );
 };
