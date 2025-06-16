@@ -1,54 +1,82 @@
-# React + TypeScript + Vite
+# Clicker Game API
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple clicker game API with MongoDB integration and leaderboard functionality.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Node.js
+- MongoDB (running locally or a MongoDB Atlas connection)
 
-## Expanding the ESLint configuration
+## Setup
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. Install dependencies:
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Make sure MongoDB is running locally or update the connection string in `server.js` to point to your MongoDB instance.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+3. Start the server:
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+node server.js
 ```
+
+The server will run on port 3000 by default.
+
+## API Endpoints
+
+### Connect Wallet
+
+- **POST** `/api/connect`
+- **Body**: `{ "walletAddress": "your-solana-wallet-address" }`
+- **Response**: Player data and connection status
+
+### Click
+
+- **POST** `/api/click`
+- **Body**:
+
+```json
+{
+  "walletAddress": "your-wallet-address",
+  "clicks": 1
+}
+```
+
+- **Response**: Updated player data including score and total clicks
+
+### Get Player Stats
+
+- **GET** `/api/stats/:walletAddress`
+- **Response**: Player's current stats (score, clicks, last click time)
+
+### Get Leaderboard
+
+- **GET** `/api/leaderboard`
+- **Response**: Top 100 players sorted by score
+
+## Features
+
+- MongoDB database integration
+- Automatic player creation on first click
+- Real-time leaderboard
+- Player statistics tracking
+
+## Security
+
+- Wallet verification on each request
+- Rate limiting for clicks
+- Input validation for wallet addresses
+
+## Database Schema
+
+### Player
+
+- `walletAddress` (String, unique): Player's wallet address
+- `score` (Number): Total score
+- `clicks` (Number): Total number of clicks
+- `lastClick` (Date): Timestamp of last click
+- `createdAt` (Date): Account creation timestamp
+- `updatedAt` (Date): Last update timestamp
