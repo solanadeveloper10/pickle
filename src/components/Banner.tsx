@@ -1,165 +1,215 @@
-import { useRef, useState, type MouseEventHandler } from "react";
-import { Box, Container, Typography } from "@mui/material";
-import Header from "./Header";
-import Leaderboard from "./Leaderboard";
-import Links from "./Links";
+import { Box, useMediaQuery } from "@mui/material";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 
-const API_URL = "https://clicker-game-api-xq9w.onrender.com";
-
-const words = ["Mwah", "Mwah!"];
-
-function getRandomWord() {
-  return words[Math.floor(Math.random() * words.length)];
-}
-
-function getRandomFontSize() {
-  return Math.floor(Math.random() * (48 - 16 + 1)) + 30;
-}
+gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
 const Banner = () => {
-  const [wallet, setWallet] = useState(localStorage.getItem("wallet") || "");
-  const [clickCount, setClickCount] = useState(1);
-  const [showGif, setShowGif] = useState(false);
-  const [gifKey, setGifKey] = useState(0);
-
-  const [texts, setTexts] = useState([]);
-  const containerRef = useRef(null);
-
-  const handleTap = (event: MouseEventHandler<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-
-    const containerRect = (
-      containerRef.current as HTMLElement
-    ).getBoundingClientRect();
-
-    const fontSize = getRandomFontSize();
-    const word = getRandomWord();
-
-    // Calculate mouse position relative to container
-    const mouseEvent = event as unknown as React.MouseEvent<HTMLDivElement>;
-    const x = mouseEvent.clientX - containerRect.left;
-    const y = mouseEvent.clientY - containerRect.top;
-
-    // Create a temporary span to measure text height for vertical offset
-    const tempSpan = document.createElement("span");
-    tempSpan.style.fontSize = fontSize + "px";
-    tempSpan.style.position = "absolute";
-    tempSpan.style.visibility = "hidden";
-    tempSpan.style.whiteSpace = "nowrap";
-    tempSpan.innerText = word;
-    document.body.appendChild(tempSpan);
-    const textHeight = tempSpan.offsetHeight;
-    document.body.removeChild(tempSpan);
-
-    const posX = x + (Math.random() * 200 - 200);
-    const posY = y - textHeight - 8 - 150; // 8px padding above cursor
-
-    const id = Date.now();
-
-    //@ts-expect-error
-    setTexts((prev) => [...prev, { id, word, fontSize, x: posX, y: posY }]);
-
-    // Remove text after 2 seconds
-    setTimeout(() => {
-      //@ts-expect-error
-      setTexts((prev) => prev.filter((t) => t.id !== id));
-    }, 1000);
-  };
-
-  const timeoutRef = useRef<NodeJS.Timeout>(null);
-
-  const sendClickRequest = async (count: number) => {
-    setClickCount(1);
-
-    if (wallet) {
-      try {
-        await fetch(`${API_URL}/api/click`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ walletAddress: wallet, clicks: count }),
-        });
-      } catch (error) {
-        console.error("Error sending clicks:", error);
-      }
-    }
-  };
-
-  const handleClick = () => {
-    setShowGif(true);
-    // Change key to force reload/replay GIF
-    setGifKey((prev) => prev + 1);
-
-    // Optional: revert to static image after GIF duration (e.g., 1s)
-    setTimeout(() => setShowGif(false), 400); // Adjust duration as needed
-    setClickCount((prev) => prev + 1);
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      if (clickCount > 0) {
-        sendClickRequest(clickCount);
-      }
-    }, 500);
-  };
+  const isXs = useMediaQuery((theme) => theme.breakpoints.down("md"));
+  const isXl = useMediaQuery((theme) => theme.breakpoints.up("xl"));
+  const isMd = useMediaQuery((theme) => theme.breakpoints.up("md"));
 
   return (
-    <>
-      <Header onChangeWallet={setWallet} />
-      {/* @ts-expect-error */}
+    <Box
+      minHeight={{ xs: "100vh", md: "100vh" }}
+      position='relative'
+      width='100%'
+      sx={{
+        overflow: "hidden",
+      }}
+    >
+      {/* CA: */}
       <Box
-        onClick={handleTap}
-        ref={containerRef}
-        height='calc(100vh - 150px)'
-        display='flex'
-        justifyContent='center'
-        alignItems='center'
-        position='relative'
-        sx={{ cursor: "pointer" }}
-        overflow='hidden'
+        component='img'
+        src='/pic_4.png'
+        sx={{
+          position: "absolute",
+          top: { xs: "25%", md: "32%", xl: "35%" },
+          left: "50%",
+          width: { xs: 350, md: 800, xl: 1500 },
+          transform: "translateX(-50%)",
+          zIndex: 5,
+          transition: "0.5s",
+          ":hover": {
+            cursor: "pointer",
+          },
+        }}
+        onClick={async (e) => {
+          try {
+            await navigator.clipboard.writeText(
+              "HKccVWHaz3yd2zt8VFMc72HaTGGboxtE5W68vLVJpump"
+            );
+
+            const img = e.target as HTMLImageElement;
+
+            setTimeout(() => {
+              img.style.transform = "translateX(-50%) scale(1.25)";
+              img.style.transition = "transform 0.3s ease-out";
+
+              setTimeout(() => {
+                img.style.transform = "translateX(-50%) scale(1)";
+                img.style.transition = "transform 0.3s ease-out";
+              }, 300);
+            }, 300);
+          } catch (e) {
+            // fallback: do nothing
+          }
+        }}
+      />
+
+      {/* BUTTONS */}
+      <Box
+        component='a'
+        href='https://x.com/PickleShowSol'
+        target='_blank'
+        sx={{
+          position: "absolute",
+          bottom: { xs: "28%", md: "25%", lg: "25%", xl: "30%" },
+          left: { xs: "59%", md: "11%", lg: "11%", xl: "10%" },
+          zIndex: 2,
+        }}
       >
-        {texts.map(({ id, word, fontSize, x, y }) => (
-          <Typography
-            key={id}
-            sx={{
-              position: "absolute",
-              left: x,
-              top: y,
-              fontSize,
-              fontWeight: "bold",
-              pointerEvents: "none",
-              userSelect: "none",
-              whiteSpace: "nowrap",
-              color: "#333",
-              transition: "opacity 0.5s ease",
-            }}
-          >
-            {word}
-          </Typography>
-        ))}
         <Box
-          onClick={handleClick}
+          component='img'
+          src='/pic_8.png'
           sx={{
+            height: { xs: "80px", md: 110, xl: 220 },
+            transform: { xs: "rotate(50deg)", md: "none" },
+            transition: "0.5s",
             ":hover": {
               cursor: "pointer",
+              transform: { md: "scale(1.2)" },
             },
           }}
-          component='img'
-          height={{ xs: 300, md: "auto" }}
-          src={showGif ? `cat.gif?key=${gifKey}` : "cat.png"}
-          alt='Cat Kiss'
         />
       </Box>
 
-      <Links />
+      <Box
+        component='a'
+        href='https://t.me/PickleShowSol'
+        target='_blank'
+        sx={{
+          position: "absolute",
+          bottom: { xs: "21%", md: "14%", lg: "14%", xl: "20%" },
+          left: {
+            xs: "36%",
+            md: window.innerHeight > 730 ? "18%" : "18%",
+            xl: "12%",
+          },
 
-      <Container>
-        <Leaderboard wallet={wallet} />
-      </Container>
-    </>
+          zIndex: 2,
+        }}
+      >
+        <Box
+          component='img'
+          src='/pic_5.png'
+          sx={{
+            transform: { xs: "rotate(50deg)", md: "none" },
+            height: { xs: 100, md: 120, xl: 220 },
+            transition: "0.5s",
+            ":hover": {
+              cursor: "pointer",
+              transform: { md: "scale(1.2)" },
+            },
+          }}
+        />
+      </Box>
+
+      <Box
+        component='a'
+        href='#'
+        target='_blank'
+        sx={{
+          position: "absolute",
+          bottom: { xs: "13%", md: "5%", lg: "5%", xl: "10%" },
+          left: {
+            xs: "22%",
+            md: window.innerHeight > 730 ? "29%" : "27%",
+            xl: "23%",
+          },
+
+          zIndex: 2,
+        }}
+      >
+        <Box
+          component='img'
+          src='/pic_6.png'
+          sx={{
+            height: { xs: 110, md: 150, xl: 250 },
+            transform: { xs: "rotate(50deg)", md: "none" },
+            transition: "0.5s",
+            ":hover": {
+              cursor: "pointer",
+              transform: { md: "scale(1.2)" },
+            },
+          }}
+        />
+      </Box>
+
+      <Box
+        component='a'
+        href='#'
+        target='_blank'
+        sx={{
+          position: "absolute",
+          bottom: { xs: "4%", md: "1.5%", lg: "1.5%", xl: "2%" },
+          left: {
+            xs: "8%",
+            md: window.innerHeight > 730 ? "47%" : "44%",
+            xl: "40%",
+          },
+          zIndex: 2,
+        }}
+      >
+        <Box
+          component='img'
+          src='/pic_7.png'
+          sx={{
+            height: { xs: "120px", md: 160, xl: 380 },
+            transform: { xs: "rotate(50deg)", md: "none" },
+            transition: "0.5s",
+            ":hover": {
+              cursor: "pointer",
+              transform: { md: "scale(1.2)" },
+            },
+          }}
+        />
+      </Box>
+
+      {isXs && (
+        <Box
+          component='img'
+          src='/rainbow_mobile.gif'
+          sx={{
+            height: "auto",
+            width: "100%",
+            display: { xs: "block", md: "none" },
+          }}
+        />
+      )}
+      {isMd && (
+        <Box
+          component='img'
+          src='/c1440.gif'
+          sx={{
+            height: "auto",
+            width: "100%",
+            display: { xs: "none", md: "block", xl: "none" },
+          }}
+        />
+      )}
+      {isXl && (
+        <Box
+          component='img'
+          src='/c2560.gif'
+          sx={{
+            width: "100%",
+            display: { xs: "none", md: "none", xl: "block" },
+          }}
+        />
+      )}
+    </Box>
   );
 };
 
